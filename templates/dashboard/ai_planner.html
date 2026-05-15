@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block title %}AI Insights{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+    <div>
+        <h1 class="text-3xl font-bold text-white mb-2 flex items-center">
+            <i data-lucide="cpu" class="w-8 h-8 mr-3 text-purple-400"></i>
+            AI <span class="grad-primary text-gradient ml-2">Insights</span>
+        </h1>
+        <p class="text-gray-400 text-sm tracking-widest uppercase">Powered by Google Gemini</p>
+    </div>
+</div>
+
+<!-- Initial Setup State -->
+<div class="glass-advanced p-10 rounded-[2.5rem] text-center relative overflow-hidden transition-all duration-700" id="aiSetupContainer">
+    <!-- Ambient Orbs -->
+    <div class="absolute -top-32 -right-32 w-64 h-64 bg-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute -bottom-32 -left-32 w-64 h-64 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+    
+    <div class="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
+        <!-- Glowing Bot Avatar -->
+        <div class="relative w-32 h-32 mb-8 group cursor-pointer" id="generateAvatarTrigger">
+            <div class="absolute inset-0 bg-gradient-to-tr from-purple-600 to-blue-600 rounded-full blur-xl opacity-50 group-hover:opacity-100 transition duration-500 animate-pulse"></div>
+            <div class="relative w-full h-full glass-advanced rounded-full flex items-center justify-center border-2 border-purple-500/50 shadow-[0_0_30px_rgba(139,92,246,0.3)] bot-icon">
+                <i data-lucide="bot" class="w-16 h-16 text-white group-hover:text-purple-200 transition"></i>
+            </div>
+            
+            <!-- Scanning Line Effect -->
+            <div class="absolute top-0 left-0 w-full h-1 bg-white/50 rounded-full blur-[1px] hidden group-hover:block" style="animation: scan 2s linear infinite;"></div>
+        </div>
+        
+        <h2 class="text-3xl font-bold text-white mb-4">Generate Smart Suggestions</h2>
+        <p class="text-gray-300 mb-10 leading-relaxed text-lg max-w-2xl">
+            Our AI will analyze your income and expenses to create a tailored budget plan, identify where you're overspending, and suggest smart ways to save.
+        </p>
+        
+        <button id="generateBtn" class="btn-gradient px-10 py-4 rounded-full text-white font-bold tracking-widest uppercase flex items-center space-x-3 hover:scale-105 transition-transform duration-300 shadow-[0_0_40px_rgba(139,92,246,0.4)]">
+            <i data-lucide="power" class="w-5 h-5"></i>
+            <span>Generate AI Insights</span>
+        </button>
+    </div>
+</div>
+
+<!-- Processing State -->
+<div id="loadingState" class="hidden glass-advanced p-16 rounded-[2.5rem] flex flex-col items-center justify-center relative overflow-hidden">
+    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 pointer-events-none"></div>
+    
+    <div class="relative w-24 h-24 mb-8">
+        <div class="absolute inset-0 border-4 border-t-purple-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full animate-spin"></div>
+        <div class="absolute inset-2 border-4 border-t-blue-400 border-r-transparent border-b-purple-400 border-l-transparent rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+            <i data-lucide="brain-circuit" class="w-8 h-8 text-white animate-pulse"></i>
+        </div>
+    </div>
+    
+    <h3 class="text-2xl font-bold text-white tracking-wider mb-2">Analyzing your finances...</h3>
+    <p class="text-purple-300 text-sm font-mono animate-pulse">Looking at your spending habits and creating a smart budget plan.</p>
+</div>
+
+<!-- Results Insight Panel -->
+<div id="resultsState" class="hidden animate-slide-up">
+    <!-- Top Action Bar -->
+    <div class="flex justify-between items-center mb-4">
+        <div class="flex space-x-3">
+            <button id="exportReportBtn" class="btn-gradient px-4 py-2 rounded-full text-xs uppercase tracking-widest text-white flex items-center shadow-lg hover:scale-105 transition-transform">
+                <i data-lucide="external-link" class="w-4 h-4 mr-2"></i> Export to Sheets
+            </button>
+            <a href="{{ url_for('api.download_pdf') }}" id="downloadPdfBtn" class="btn-gradient px-4 py-2 rounded-full text-xs uppercase tracking-widest text-white flex items-center shadow-lg hover:scale-105 transition-transform bg-gradient-to-r from-red-500 to-pink-500">
+                <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Download PDF
+            </a>
+        </div>
+        <button onclick="location.reload()" class="btn-glass px-4 py-2 rounded-full text-xs uppercase tracking-widest text-purple-300 flex items-center hover:text-white">
+            <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Regenerate
+        </button>
+    </div>
+    
+    <!-- Export Status Banner -->
+    <div id="exportStatus" class="hidden mb-4 p-4 rounded-xl border flex items-center transition-all duration-300"></div>
+    
+    <!-- Immersive Output Panel -->
+    <div class="glass-advanced p-8 md:p-12 rounded-[2.5rem] relative overflow-hidden border border-purple-500/20 shadow-[0_0_50px_rgba(139,92,246,0.1)]">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+        
+        <div class="flex items-center space-x-4 mb-8 border-b border-gray-700/50 pb-6">
+            <div class="p-3 bg-purple-500/20 rounded-2xl border border-purple-500/30">
+                <i data-lucide="lightbulb" class="w-8 h-8 text-yellow-400"></i>
+            </div>
+            <div>
+                <h3 class="text-2xl font-bold text-white">Your Financial Insights</h3>
+                <p class="text-sm text-gray-400 font-mono">Generated on: <span id="logTime"></span></p>
+            </div>
+        </div>
+        
+        <!-- Markdown Inject -->
+        <div id="aiContent" class="custom-prose max-w-none text-gray-300">
+            <!-- Content will be beautifully styled via JS/CSS -->
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes scan {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(128px); }
+        100% { transform: translateY(0); }
+    }
+    
+    /* Advanced Markdown Styling for Neural Output */
+    .custom-prose h1 { @apply text-3xl font-bold text-white mt-8 mb-4 tracking-tight; }
+    .custom-prose h2 { @apply text-2xl font-bold text-blue-300 mt-10 mb-4 border-b border-blue-900/50 pb-2; }
+    .custom-prose h3 { @apply text-xl font-semibold text-purple-300 mt-6 mb-3; }
+    .custom-prose p { @apply text-lg leading-relaxed mb-6; }
+    .custom-prose ul { @apply space-y-3 mb-6 pl-0; }
+    .custom-prose li { @apply relative pl-8 text-lg; }
+    .custom-prose li::before { 
+        content: ''; 
+        @apply absolute left-0 top-2.5 w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]; 
+    }
+    .custom-prose strong { @apply text-white font-semibold; }
+    .custom-prose blockquote { @apply border-l-4 border-purple-500 bg-purple-900/10 p-4 rounded-r-xl italic text-gray-400; }
+    .custom-prose table { @apply w-full text-left border-collapse my-6 bg-white/5 rounded-xl overflow-hidden; }
+    .custom-prose th { @apply px-6 py-4 bg-gray-900/50 text-xs uppercase tracking-widest text-gray-400 border-b border-gray-700/50; }
+    .custom-prose td { @apply px-6 py-4 text-sm text-gray-300 border-b border-gray-800; }
+    .custom-prose tr:hover td { @apply bg-white/5; }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const executeMatrix = async () => {
+            const setupContainer = document.getElementById('aiSetupContainer');
+            const loadingState = document.getElementById('loadingState');
+            const resultsState = document.getElementById('resultsState');
+            const aiContent = document.getElementById('aiContent');
+            const logTime = document.getElementById('logTime');
+
+            // Transitions
+            setupContainer.style.opacity = '0';
+            setupContainer.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                setupContainer.classList.add('hidden');
+                loadingState.classList.remove('hidden');
+                loadingState.classList.add('flex');
+                
+                // Fetch AI Data
+                fetchData();
+            }, 500);
+
+            async function fetchData() {
+                try {
+                    const response = await fetch('{{ url_for("api.generate_advice") }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        aiContent.innerHTML = marked.parse(data.advice);
+                        
+                        const now = new Date();
+                        logTime.innerText = now.toISOString().replace('T', ' ').substring(0, 19);
+                        
+                        // Re-run lucide icons inside generated content if needed
+                        lucide.createIcons();
+
+                        loadingState.classList.remove('flex');
+                        loadingState.classList.add('hidden');
+                        resultsState.classList.remove('hidden');
+                    } else {
+                        // Error handling with a futuristic flair
+                        aiContent.innerHTML = `
+                            <div class="p-6 bg-red-900/20 border border-red-500/50 rounded-2xl flex items-start space-x-4">
+                                <i data-lucide="alert-triangle" class="w-8 h-8 text-red-500 flex-shrink-0 mt-1"></i>
+                                <div>
+                                    <h3 class="text-xl font-bold text-red-400 mb-2">System Error: Unable to connect</h3>
+                                    <p class="text-gray-300">${data.error || 'The API core is unreachable. Ensure your GEMINI_API_KEY is configured in the environment.'}</p>
+                                </div>
+                            </div>
+                        `;
+                        lucide.createIcons();
+                        loadingState.classList.remove('flex');
+                        loadingState.classList.add('hidden');
+                        resultsState.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error: Failed to connect to the server.');
+                    location.reload();
+                }
+            }
+        };
+
+        document.getElementById('generateBtn').addEventListener('click', executeMatrix);
+        document.getElementById('generateAvatarTrigger').addEventListener('click', executeMatrix);
+        
+        // Export Feature Logic
+        document.getElementById('exportReportBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('exportReportBtn');
+            const statusDiv = document.getElementById('exportStatus');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i> Exporting...';
+            btn.disabled = true;
+            lucide.createIcons();
+            
+            try {
+                const response = await fetch('{{ url_for("api.export_summary") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                statusDiv.classList.remove('hidden');
+                
+                if (response.ok && data.success) {
+                    statusDiv.className = 'mb-4 p-4 rounded-xl border flex items-center transition-all duration-300 bg-green-900/20 border-green-500/50 text-green-300';
+                    statusDiv.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5 mr-3"></i> ' + data.message;
+                    
+                    // Reset button after success
+                    btn.innerHTML = '<i data-lucide="check" class="w-4 h-4 mr-2"></i> Exported';
+                    setTimeout(() => {
+                        statusDiv.classList.add('hidden');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        lucide.createIcons();
+                    }, 5000);
+                } else {
+                    throw new Error(data.error || 'Failed to export summary');
+                }
+            } catch (error) {
+                statusDiv.classList.remove('hidden');
+                statusDiv.className = 'mb-4 p-4 rounded-xl border flex items-center transition-all duration-300 bg-red-900/20 border-red-500/50 text-red-300';
+                statusDiv.innerHTML = '<i data-lucide="alert-triangle" class="w-5 h-5 mr-3"></i> Error: ' + error.message;
+                
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+            lucide.createIcons();
+        });
+    });
+</script>
+{% endblock %}
