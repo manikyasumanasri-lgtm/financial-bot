@@ -20,7 +20,9 @@ def create_app():
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(api_bp)
     
-    @app.route('/')
+    @app.route("/")
+    def home():
+     return "Financial Bot is running"
     def index():
         if 'user_id' in session:
             return redirect(url_for('dashboard.index'))
@@ -33,3 +35,4 @@ app = create_app()
 
 if __name__ == '__main__':
     app.run(debug=True)
+application = app
