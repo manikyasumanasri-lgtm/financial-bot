@@ -21,8 +21,6 @@ def create_app():
     app.register_blueprint(api_bp)
     
     @app.route("/")
-    def home():
-     return "Financial Bot is running"
     def index():
         if 'user_id' in session:
             return redirect(url_for('dashboard.index'))

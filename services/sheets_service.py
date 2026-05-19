@@ -1,37 +1,34 @@
 import os
-import gspread
-from google.oauth2.service_account import Credentials
+import requests
 from utils.config import Config
 
 class GoogleSheetsService:
     def __init__(self):
-        self.credentials_path = Config.GOOGLE_SHEETS_CREDENTIALS
+        self.webhook_url = Config.GOOGLE_SHEET_WEBHOOK_URL
         
-    def append_row(self, sheet_id, data_list):
+    def append_row(self, webhook_url, data_list):
         """
-        Appends a row to a Google Sheet using the gspread library.
+        Appends a row to a Google Sheet using a Google Apps Script Webhook.
         """
-        if not self.credentials_path or self.credentials_path == 'your_google_sheets_credentials_json_here' or not os.path.exists(self.credentials_path):
-            print("Google Sheets credentials not configured or file not found. Skipping export.")
-            return False
-            
-        if not sheet_id or sheet_id == 'your_target_google_sheet_id_here':
-            print("Target Google Sheet ID not configured. Skipping export.")
+        url = webhook_url or self.webhook_url
+        if not url or url == 'your_google_sheet_webhook_url_here':
+            print("Google Sheet Webhook URL not configured. Skipping export.")
             return False
 
-        print(f"Appending row to Google Sheet {sheet_id}: {data_list}")
+        print(f"Sending row to Google Sheet Webhook: {data_list}")
         
         try:
-            scopes = [
-                'https://www.googleapis.com/auth/spreadsheets',
-                'https://www.googleapis.com/auth/drive'
-            ]
-            creds = Credentials.from_service_account_file(self.credentials_path, scopes=scopes)
-            client = gspread.authorize(creds)
-            
-            sheet = client.open_by_key(sheet_id).sheet1
-            sheet.append_row(data_list)
+            # data_list is expected to be [month, income, expense, balance]
+            payload = {
+                "month": data_list[0],
+                "income": data_list[1],
+                "expense": data_list[2],
+                "balance": data_list[3]
+            }
+            response = requests.post(url, json=payload)
+            response.raise_for_status()
+            print("Webhook Response:", response.text)
             return True
         except Exception as e:
-            print(f"Failed to append row to Google Sheets: {e}")
+            print(f"Failed to append row via Webhook: {e}")
             return False

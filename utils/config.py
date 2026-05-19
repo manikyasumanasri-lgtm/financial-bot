@@ -11,5 +11,4 @@ class Config:
     # API Keys
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
     NOTION_API_KEY = os.environ.get('NOTION_API_KEY')
-    GOOGLE_SHEETS_CREDENTIALS = os.environ.get('GOOGLE_SHEETS_CREDENTIALS')
-    GOOGLE_SHEET_ID = os.environ.get('GOOGLE_SHEET_ID')
+    GOOGLE_SHEET_WEBHOOK_URL = os.environ.get('GOOGLE_SHEET_WEBHOOK_URL')

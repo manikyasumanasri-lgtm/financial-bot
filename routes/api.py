@@ -62,16 +62,24 @@ def export_summary():
     sheet_data = [current_month, total_income, total_expense, balance]
     from utils.config import Config
     sheets_success = sheets.append_row(
-        sheet_id=Config.GOOGLE_SHEET_ID,
+        webhook_url=Config.GOOGLE_SHEET_WEBHOOK_URL,
         data_list=sheet_data
     )
     
-    return jsonify({
-        'success': True,
-        'message': 'Monthly summary successfully exported to Google Sheets and Notion.',
-        'notion_status': notion_success,
-        'sheets_status': sheets_success
-    })
+    if sheets_success:
+        return jsonify({
+            'success': True,
+            'message': 'Monthly summary successfully exported to Google Sheets.',
+            'notion_status': notion_success,
+            'sheets_status': sheets_success
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Failed to connect to Google Sheets Webhook. Please check the URL in your .env file.',
+            'notion_status': notion_success,
+            'sheets_status': sheets_success
+        }), 500
 
 @api_bp.route('/download_pdf', methods=['GET'])
 def download_pdf():

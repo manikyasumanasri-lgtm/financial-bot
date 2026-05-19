@@ -1,0 +1,21 @@
+{
+  "name": "finanical-bot",
+  "version": "1.0.0",
+  "description": "A full-stack AI-powered web application using Python Flask for the backend and a modern responsive frontend using HTML, CSS, JavaScript, and Tailwind CSS. The application helps users manage personal finances, analyze spending habits, generate AI-powered budget plans, and provide saving recommendations.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manikyasumanasri-lgtm/financial-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/manikyasumanasri-lgtm/financial-bot/issues"
+  },
+  "homepage": "https://github.com/manikyasumanasri-lgtm/financial-bot#readme"
+}
